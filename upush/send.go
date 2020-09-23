@@ -188,6 +188,8 @@ type IOSPayloadAps struct {
 	Sound            string          `json:"sound,omitempty"`
 	ContentAvailable int64           `json:"content-available,omitempty"` // 可选,代表静默推送
 	Category         string          `json:"category,omitempty"`          // 可选,注意: ios8才支持该字段
+	MutableContent   int             `json:"mutable-content,omitempty"`   // 添加图片需要设置为1
+	Image            string          `json:"image,omitempty"`
 }
 
 // IOSPayloadAlert alert in aps

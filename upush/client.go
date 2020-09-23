@@ -83,7 +83,7 @@ func (c *RawClient) sendRequest(ctx context.Context, method, url string, p inter
 		return err
 	}
 	mysign := Sign(method, url, body, c.appMasterSecret)
-	url = url + "?" + mysign
+	url = url + "?sign=" + mysign
 	req, err := http.NewRequestWithContext(ctx, method, url, bytes.NewReader(body))
 	if err != nil {
 		return err
