@@ -8,26 +8,41 @@ import (
 	"time"
 )
 
+// SendType types of send
+type SendType string
+
 const (
 	// SendTypeUnicast 单播
-	SendTypeUnicast = "unicast"
+	SendTypeUnicast SendType = "unicast"
 	// SendTypeListcast 列播，要求不超过500个device_token
-	SendTypeListcast = "listcast"
+	SendTypeListcast SendType = "listcast"
 	// SendTypeFilecast 文件播，多个device_token可通过文件形式批量发送
-	SendTypeFilecast = "filecast"
+	SendTypeFilecast SendType = "filecast"
 	//SendTypeBroadcast 广播
-	SendTypeBroadcast = "broadcast"
+	SendTypeBroadcast SendType = "broadcast"
 	// SendTypeCustomizedcast 通过alias进行推送，包括以下两种case:
 	//     - alias: 对单个或者多个alias进行推送
 	//     - file_id: 将alias存放到文件后，根据file_id来推送
-	SendTypeCustomizedcast = "customizedcast"
+	SendTypeCustomizedcast SendType = "customizedcast"
+)
+
+// ReceiptType .
+type ReceiptType string
+
+const (
+	// ReceiptTypeReceived 送达
+	ReceiptTypeReceived ReceiptType = "1"
+	// ReceiptTypeClicked 点击
+	ReceiptTypeClicked ReceiptType = "2"
+	//ReceiptTypeBoth 送达+点击
+	ReceiptTypeBoth ReceiptType = "3"
 )
 
 // SendParam 消息发送调用参数
 type SendParam struct {
-	AppKey    string `json:"appKey"`    // 必填，应用唯一标识
-	Timestamp string `json:"timestamp"` // 必填，时间戳，10位或者13位均可，时间戳有效期为10分钟
-	Type      string `json:"type"`      // 必填，消息发送类型
+	AppKey    string   `json:"appKey"`    // 必填，应用唯一标识
+	Timestamp string   `json:"timestamp"` // 必填，时间戳，10位或者13位均可，时间戳有效期为10分钟
+	Type      SendType `json:"type"`      // 必填，消息发送类型
 	/*
 		当type=unicast时, 必填, 表示指定的单个设备
 
@@ -66,14 +81,14 @@ type SendParam struct {
 	// 可选,正式/测试模式,默认为true
 	// 测试模式只对“广播”、“组播”类消息生效,其他类型的消息任务（如“文件播”）不会走测试模式
 	// 测试模式只会将消息发给测试设备,测试设备需要到web上添加
-	ProductionMode string `json:"production_mode,omitempty"`
+	ProductionMode Bool   `json:"production_mode,omitempty"`
 	Description    string `json:"description,omitempty"` // 可选,发送消息描述,建议填写
 
-	Mipush     string `json:"mipush,omitempty"`      // 可选,默认为false,当为true时,表示MIUI、EMUI、Flyme系统设备离线转为系统下发
+	Mipush     Bool   `json:"mipush,omitempty"`      // 可选,默认为false,当为true时,表示MIUI、EMUI、Flyme系统设备离线转为系统下发
 	MiActivity string `json:"mi_activity,omitempty"` // 可选,mipush值为true时生效,表示走系统通道时打开指定页面acitivity的完整包路径
 
-	ReceiptURL  string `json:"receipt_url,omitempty"`  // 开发者接受数据的地址,最大长度256字节
-	ReceiptType string `json:"receipt_type,omitempty"` // 回执数据类型,1:送达回执;2:点击回执;3:送达和点击回执,默认为3
+	ReceiptURL  string      `json:"receipt_url,omitempty"`  // 开发者接受数据的地址,最大长度256字节
+	ReceiptType ReceiptType `json:"receipt_type,omitempty"` // 回执数据类型,1:送达回执;2:点击回执;3:送达和点击回执,默认为3
 }
 
 // SendPolicy .
@@ -104,9 +119,19 @@ type SendPolicy struct {
 	ApnsCollapseID string `json:"apns_collapse_id,omitempty"`
 }
 
+// DisplayType 消息类型
+type DisplayType string
+
+const (
+	// DisplayTypeNotification 通知
+	DisplayTypeNotification = "notification"
+	//DisplayTypeMessage 消息
+	DisplayTypeMessage = "message"
+)
+
 // AndroidPayload android notification payload
 type AndroidPayload struct {
-	DisplayType string `json:"display_type"` // 必填,消息类型: notification(通知)、message(消息)
+	DisplayType DisplayType `json:"display_type"` // 必填,消息类型: notification(通知)、message(消息)
 
 	// 必填,消息体
 	// 当display_type=message时,body的内容只需填写custom字段
@@ -118,6 +143,20 @@ type AndroidPayload struct {
 	// 可以配合通知到达后,打开App/URL/Activity使用
 	Extra interface{} `json:"extra,omitempty"`
 }
+
+// AfterOpen AfterOpen in android payload body
+type AfterOpen string
+
+const (
+	// AfterOpenGoApp go_app
+	AfterOpenGoApp = "go_app"
+	// AfterOpenGoURL go_url
+	AfterOpenGoURL = "go_url"
+	// AfterOpenGoActivity go_activity
+	AfterOpenGoActivity = "go_activity"
+	// AfterOpenGoCustom go_custom
+	AfterOpenGoCustom = "go_custom"
+)
 
 // AndroidPayloadBody .
 type AndroidPayloadBody struct {
@@ -148,9 +187,9 @@ type AndroidPayloadBody struct {
 	Sound string `json:"sound,omitempty"`
 
 	BuilderID   string `json:"builder_id,omitempty"`   // 可选,默认为0,用于标识该通知采用的样式,使用该参数时,开发者必须在SDK里面实现自定义通知栏样式
-	PlayVibrate string `json:"play_vibrate,omitempty"` // 可选,收到通知是否震动,默认为"true"
-	PlayLights  string `json:"play_lights,omitempty"`  // 可选,收到通知是否闪灯,默认为"true"
-	PlaySound   string `json:"play_sound,omitempty"`   // 可选,收到通知是否发出声音,默认为"true"
+	PlayVibrate Bool   `json:"play_vibrate,omitempty"` // 可选,收到通知是否震动,默认为"true"
+	PlayLights  Bool   `json:"play_lights,omitempty"`  // 可选,收到通知是否闪灯,默认为"true"
+	PlaySound   Bool   `json:"play_sound,omitempty"`   // 可选,收到通知是否发出声音,默认为"true"
 
 	// 点击"通知"的后续行为,默认为打开app
 	// 可选,默认为"go_app",值可以为:
@@ -158,7 +197,7 @@ type AndroidPayloadBody struct {
 	//   "go_url": 跳转到URL
 	//   "go_activity": 打开特定的activity
 	//   "go_custom": 用户自定义内容
-	AfterOpen string `json:"after_open,omitempty"`
+	AfterOpen AfterOpen `json:"after_open,omitempty"`
 
 	// 当after_open=go_url时,必填
 	// 通知栏点击后跳转的URL,要求以http或者https开头
