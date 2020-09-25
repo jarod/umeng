@@ -2,9 +2,11 @@ package upush
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -289,8 +291,26 @@ func (c *RawClient) Send(ctx context.Context, p *SendParam) (*SendResult, error)
 	return r, err
 }
 
-// SendFilecast filecast
-func (c *Client) SendFilecast(ctx context.Context, fileID string, payload interface{}, params ...*SendParam) (*SendResult, error) {
+// Listcast listcast,
+// tokens list of device tokens, limit up to 500.
+func (c *Client) Listcast(ctx context.Context, tokens []string, payload interface{}, params ...*SendParam) (*SendResult, error) {
+	if len(tokens) > 500 {
+		return nil, errors.New("number of token exceed limit value")
+	}
+	var p *SendParam
+	if len(params) > 0 {
+		p = params[0]
+	} else {
+		p = &SendParam{}
+	}
+	p.DeviceTokens = strings.Join(tokens, ",")
+	p.Payload = payload
+	p.Type = SendTypeListcast
+	return c.rc.Send(ctx, p)
+}
+
+// Filecast filecast
+func (c *Client) Filecast(ctx context.Context, fileID string, payload interface{}, params ...*SendParam) (*SendResult, error) {
 	var p *SendParam
 	if len(params) > 0 {
 		p = params[0]
